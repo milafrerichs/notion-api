@@ -1,0 +1,56 @@
+org: milafrerichs
+app: notion
+service: web-to-notion
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+    useDownloadCache: false
+    useStaticCache: false
+
+provider:
+  name: aws
+  runtime: python3.7
+  profile: prototypefund
+  timeout: 900 # in seconds
+  environment:
+    NOTION_DATA_DIR: "/tmp"
+    NOTION_TOKEN: ""
+    API_SECRET: ""
+    MONTH_PAGE: ""
+    YEAR_PAGE: ""
+    DAY_PAGE: ""
+    WEEK_PAGE: ""
+
+functions:
+  create:
+    handler: handler.notion_create
+    events:
+    - http:
+        path: create
+        method: post
+        cors: true
+  create_today:
+    handler: handler.notion_create_today
+    events:
+    - http:
+        path: create_for_today
+        method: post
+        cors: true
+  day:
+    handler: handler.create_day
+    events:
+      - schedule: cron(15 3 * * ? *)
+
+  week:
+    handler: handler.create_week
+    events:
+      - schedule: cron(15 3 ? * MON *)
+
+  month:
+    handler: handler.create_month
+    events:
+      - schedule: cron(15 3 1 * ? *)
+
+plugins:
+  - serverless-python-requirements
